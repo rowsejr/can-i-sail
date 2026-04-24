@@ -109,6 +109,23 @@
     footer strong { color: #fbbf24; }
     footer { text-align: center; color: var(--muted); font-size: 0.65rem; padding: 1.5rem 1rem 2.5rem; }
     footer a { color: var(--muted); }
+    .lookahead-bar {
+      display: flex; justify-content: center; gap: 0.5rem;
+      padding: 0.6rem 1rem 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(6,15,30,0.7);
+    }
+    .lookahead-btn {
+      font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.85rem;
+      border-radius: 20px; border: 1px solid var(--card-border);
+      background: transparent; color: var(--muted); cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .lookahead-btn:hover { border-color: var(--sea-light); color: var(--text); }
+    .lookahead-btn.active {
+      background: rgba(42,122,184,0.25); border-color: var(--sea-light);
+      color: var(--sail);
+    }
   </style>
 </head>
 <body>
@@ -117,6 +134,11 @@
   <p>Margate Harbour · Threshold 3.2 m · Times in BST (Mar–Oct) or UTC</p>
   <p class="subtitle" id="updated-time"></p>
 </header>
+<div class="lookahead-bar" role="group" aria-label="Lookahead period">
+  <button class="lookahead-btn active" data-days="7">7 days</button>
+  <button class="lookahead-btn" data-days="14">14 days</button>
+  <button class="lookahead-btn" data-days="30">1 month</button>
+</div>
 <main>
   <div class="loading" id="loading">
     <div class="spinner"></div>
@@ -665,20 +687,35 @@ async function main() {
   let wx = null;
   try { wx = await fetchWeather(); } catch(e) { console.warn('Weather unavailable', e); }
 
-  const today = new Date();
-  const cards = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()+i));
-    const ds = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-    cards.push(renderDay(ds, wx));
+  function renderCards(days) {
+    const today = new Date();
+    const cards = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()+i));
+      const ds = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+      cards.push(renderDay(ds, wx));
+    }
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('cards').innerHTML = cards.join('');
   }
 
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('cards').innerHTML = cards.join('');
+  let activeDays = 7;
+  renderCards(activeDays);
+
   const now = Date.now();
   const tzNow = tzLabel(now);
   document.getElementById('updated-time').textContent =
     `Updated ${new Date(now + localOffsetMs(now)).toISOString().slice(11,16)} ${tzNow}`;
+
+  document.querySelectorAll('.lookahead-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const days = Number(btn.dataset.days);
+      if (days === activeDays) return;
+      activeDays = days;
+      document.querySelectorAll('.lookahead-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderCards(activeDays);
+    });
+  });
 }
 
 main();
