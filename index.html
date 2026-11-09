@@ -126,12 +126,46 @@
       background: rgba(42,122,184,0.25); border-color: var(--sea-light);
       color: var(--sail);
     }
+    .step-pill {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      background: rgba(147,197,253,0.12); color: #93c5fd;
+      border: 1px solid rgba(147,197,253,0.3);
+      border-radius: 10px; padding: 0.2rem 0.6rem; margin: 0.15rem 0.2rem 0.15rem 0;
+    }
+    .press-note { font-size: 0.65rem; color: var(--muted); margin-top: 0.3rem; }
+    .tune { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; margin-bottom: 1rem; overflow: hidden; }
+    .tune summary { cursor: pointer; padding: 0.9rem 1rem; font-weight: 700; font-size: 0.95rem; list-style: none; }
+    .tune summary::-webkit-details-marker { display: none; }
+    .tune summary::after { content: '▾'; float: right; color: var(--muted); }
+    .tune[open] summary { border-bottom: 1px solid var(--card-border); background: rgba(26,74,122,0.3); }
+    .tune-body { padding: 0.8rem 1rem 1rem; font-size: 0.8rem; line-height: 1.45; }
+    .tune-body p { margin: 0.4rem 0; }
+    .tune-body h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 1rem 0 0.4rem; }
+    .tune-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.1rem; }
+    .tune-row label { font-weight: 600; min-width: 7.5rem; }
+    .tune input[type=number], .tune input[type=datetime-local], .tune select {
+      background: #0a2342; color: var(--text); border: 1px solid var(--card-border); border-radius: 8px;
+      padding: 0.35rem 0.5rem; font-size: 0.85rem; font-family: inherit;
+    }
+    .tune input[type=number] { width: 5.5rem; }
+    .tune input:disabled { opacity: 0.75; }
+    .mutd { color: var(--muted); font-size: 0.72rem; }
+    .tbtn {
+      font-size: 0.75rem; font-weight: 600; padding: 0.4rem 0.8rem; border-radius: 20px; cursor: pointer;
+      border: 1px solid var(--sea-light); background: rgba(42,122,184,0.25); color: var(--sail); font-family: inherit;
+    }
+    .tbtn.sec { background: transparent; color: var(--muted); border-color: var(--card-border); }
+    .obs-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; margin-top: 0.4rem; }
+    .obs-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 0.15rem 0.3rem; border-bottom: 1px solid var(--card-border); }
+    .obs-table td { padding: 0.25rem 0.3rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .obs-table .x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 0.8rem; }
+    #t-msg { color: #fbbf24; min-height: 1em; }
   </style>
 </head>
 <body>
 <header>
   <h1>⛵ Can I Sail?</h1>
-  <p>Margate Harbour · Threshold 3.2 m · Times in BST (Mar–Oct) or UTC</p>
+  <p id="hdr-sub">Margate Harbour · Afloat above 3.2 m · UK time</p>
   <p class="subtitle" id="updated-time"></p>
 </header>
 <div class="lookahead-bar" role="group" aria-label="Lookahead period">
@@ -145,11 +179,32 @@
     <p>Loading tides &amp; weather…</p>
   </div>
   <div id="cards"></div>
+  <details class="tune" id="tune">
+    <summary>⚙︎ Tune it to your boat and mooring</summary>
+    <div class="tune-body">
+      <p>Heights are tide heights above chart datum, as in the tide table. They are kept on this phone.</p>
+      <div class="tune-row"><label for="h-win">Afloat above</label><input type="number" id="h-win" step="0.05" min="0.3" max="5.8" inputmode="decimal"> m</div>
+      <p class="mutd" id="h-win-note"></p>
+      <p class="mutd" id="h-fall-note"></p>
+      <div class="tune-row"><label for="h-off">Step off below</label><input type="number" id="h-off" step="0.05" min="0.3" max="5.8" inputmode="decimal" placeholder="not set"> m</div>
+      <p class="mutd" id="h-off-note"></p>
+      <div class="tune-row"><label for="p-on" style="min-width:0"><input type="checkbox" id="p-on"> Allow for air pressure</label></div>
+      <p class="mutd">High pressure holds the sea down, about 1 cm for every hPa above 1013, so the water goes earlier on a falling tide; low pressure does the opposite. Uses the forecast pressure for the next 8 days. Wind can push the water further either way, which is not allowed for.</p>
+      <h3>Log what you see</h3>
+      <p>Tap at the moment it happens. The app works out how high the water was, and from then on uses what you logged instead of the numbers above. A few logs on different tides make it accurate for your mooring.</p>
+      <div class="tune-row"><button class="tbtn now-btn" data-k="float" type="button">She's floating now</button><button class="tbtn now-btn" data-k="aground" type="button">Touched bottom now</button><button class="tbtn now-btn" data-k="stepoff" type="button">Stepped off now</button></div>
+      <p class="mutd" style="margin-top:0.6rem">Or for another time:</p>
+      <div class="tune-row"><select id="o-kind"><option value="float">Floated</option><option value="aground">Touched bottom</option><option value="stepoff">Stepped off</option></select><input type="datetime-local" id="o-when"><button class="tbtn" id="o-add" type="button">Add</button></div>
+      <p id="t-msg"></p>
+      <div id="o-list"></div>
+      <p><button class="tbtn sec" id="o-clear" type="button">Clear what I logged</button></p>
+    </div>
+  </details>
 </main>
 <footer>
-  Tides: PLA Margate predictions (Apr–Dec 2026) &nbsp;|&nbsp; Weather &amp; Waves: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a><br>
+  Tides: PLA Margate predictions (Apr–Dec 2026), shaped between high and low water with Margate's own curve (MARC model) &nbsp;|&nbsp; Weather, waves &amp; pressure: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a><br>
   Tidal data is UT/GMT · Display times auto-converted to <strong>BST</strong> (UTC+1) Mar–Oct, <strong>UTC</strong> Nov–Mar<br>
-  Depth ≥3.2 m · Wind &lt;22 kn · Waves &lt;1.5 m · Cosine interpolation
+  Wind &lt;22 kn · Waves &lt;1.5 m · Times solved to the minute · Predictions only: check the water before you rely on them
 </footer>
 
 <script>
@@ -432,8 +487,23 @@ const RAW_TIDES = [
 ["2026-12-31","05:02",4.42,"H"],["2026-12-31","11:47",0.85,"L"],["2026-12-31","17:59",4.17,"H"],["2026-12-31","23:42",1.44,"L"],
 ];
 
-const THRESHOLD = 3.2;
 const LAT = 51.390402, LON = 1.379134;
+
+// ─── YOUR SETTINGS (kept on this phone: the Tune panel at the bottom) ─────────
+// Heights are tide heights above chart datum, as printed in the tide table.
+const DEFAULTS = { win: 3.2, stepOff: null, pressure: true };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('cis.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('cis.' + k, JSON.stringify(v)); } catch (e) { /* storage blocked: the change lasts until the page is closed */ } },
+};
+const okHeight = v => typeof v === 'number' && v > 0.3 && v < 5.8;
+let SETTINGS = Object.assign({}, DEFAULTS, store.get('settings', {}));
+if (!okHeight(SETTINGS.win)) SETTINGS.win = DEFAULTS.win;
+if (SETTINGS.stepOff !== null && !okHeight(SETTINGS.stepOff)) SETTINGS.stepOff = null;
+SETTINGS.pressure = SETTINGS.pressure !== false;
+const OBS_KINDS = { float: 'Floated', aground: 'Touched bottom', stepoff: 'Stepped off' };
+// What you saw, to tune the heights: [{kind, ts, surge}] (surge: the air-pressure correction at that moment, if it was known)
+let OBS = (store.get('obs', []) || []).filter(o => o && OBS_KINDS[o.kind] && typeof o.ts === 'number');
 
 // ─── TIMEZONE (BST / UTC) ─────────────────────────────────────────────────────
 // UK BST = UTC+1 from last Sunday in March 01:00 UTC → last Sunday in October 01:00 UTC
@@ -455,65 +525,145 @@ function fmtLocal(ts) {
   const d = new Date(ts + localOffsetMs(ts));
   return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
 }
+function fmtDay(ts) { return new Date(ts + localOffsetMs(ts)).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+// Midnight to midnight UK time for a date string, as UTC timestamps
+function dayBounds(ds) {
+  const [y, mo, dy] = ds.split('-').map(Number), off = localOffsetMs(Date.UTC(y, mo - 1, dy, 12));
+  return [Date.UTC(y, mo - 1, dy) - off, Date.UTC(y, mo - 1, dy + 1) - off];
+}
 
-// Parse tide data into sorted array of {ts, height, type}
+// Parse tide data into sorted array of {ts, height, type}. The PLA times are GMT all year.
 const TIDES = RAW_TIDES.map(([date, time, height, type]) => {
   const [y,mo,dy] = date.split('-').map(Number);
   const [h,m] = time.split(':').map(Number);
   return { ts: Date.UTC(y, mo-1, dy, h, m), height, type };
 }).sort((a,b) => a.ts - b.ts);
+const DATA_END = TIDES[TIDES.length - 1].ts;
 
-// Cosine interpolation between adjacent turning points
-function tideAt(tsMs) {
-  let lo = -1;
-  for (let i = 0; i < TIDES.length - 1; i++) {
-    if (TIDES[i].ts <= tsMs && TIDES[i+1].ts > tsMs) { lo = i; break; }
+// ─── THE TIDE BETWEEN HIGH AND LOW WATER ──────────────────────────────────────
+// The PLA gives the times and heights of high and low water. In between, the tide follows Margate's own shape rather
+// than a cosine: the ebb here runs off faster than a cosine in its middle hours, so a cosine kept the water about
+// 5 minutes too long on every falling tide (up to 11). The shape comes from the MARC hydrodynamic model
+// (Ifremer/SHOM, via OhMyWind) for 9-25 Nov 2026: how far through the rise or fall the water is, as the difference
+// from a cosine at 0, 0.05 ... 1 of the time between high and low water, for neaps (range about 2.7 m) and springs
+// (about 3.7 m), blended by each tide's range. Checked against that model, it removes the bias: times now fall
+// either side of it by 5 to 9 minutes at most, the tide-to-tide variation the model itself has.
+const SHAPE = {
+  neapRange: 2.7, springRange: 3.7,
+  flood: {
+    neap:   [0, -0.0003, -0.002, -0.0054, -0.0086, -0.011, -0.0126, -0.0116, -0.0107, -0.0088, -0.0052, -0.002, 0.0014, 0.0037, 0.0044, 0.0041, 0.0031, 0.0022, 0.0009, -0.0002, 0],
+    spring: [0, -0.001, -0.004, -0.0075, -0.0106, -0.0137, -0.0154, -0.0159, -0.0154, -0.0138, -0.0111, -0.008, -0.0056, -0.0031, -0.001, -0.0004, 0.0001, 0.0001, 0, 0.0001, 0],
+  },
+  ebb: {
+    neap:   [0, 0.0002, -0.0004, 0, 0.0008, 0.0023, 0.0042, 0.0057, 0.0087, 0.0119, 0.0138, 0.0151, 0.0161, 0.0143, 0.0122, 0.0098, 0.007, 0.0035, 0.0016, 0.0002, 0],
+    spring: [0, 0.001, 0.004, 0.0076, 0.0125, 0.0183, 0.0237, 0.0283, 0.0321, 0.0341, 0.0346, 0.0325, 0.0291, 0.0236, 0.0175, 0.0118, 0.007, 0.0031, 0.0005, -0.0001, 0],
+  },
+};
+// How far (0 to 1) through its rise or fall the tide is, frac of the way from one turning point to the next
+function shapeAt(frac, rising, range) {
+  const s = rising ? SHAPE.flood : SHAPE.ebb;
+  const w = Math.min(1, Math.max(0, (range - SHAPE.neapRange) / (SHAPE.springRange - SHAPE.neapRange)));
+  const x = Math.min(1, Math.max(0, frac)) * 20, i = Math.min(19, Math.floor(x)), f = x - i;
+  const dev = k => s.neap[k] + w * (s.spring[k] - s.neap[k]);
+  const fade = Math.min(1, frac / 0.1, (1 - frac) / 0.1);   // the correction fades out at high and low water, where the cosine itself is flat, so the curve never turns back
+  return (1 - Math.cos(frac * Math.PI)) / 2 + (dev(i) + (dev(i + 1) - dev(i)) * f) * fade * fade;
+}
+// The turning point at or before ts (so ts lies between TIDES[i] and TIDES[i+1]), or -1 outside the tide table
+function segAt(ts) {
+  const n = TIDES.length; if (ts < TIDES[0].ts || ts > TIDES[n - 1].ts) return -1;
+  let lo = 0, hi = n - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (TIDES[m].ts <= ts) lo = m; else hi = m; }
+  return lo;
+}
+// The predicted height at a moment, as the tide table has it (average air pressure)
+function tideTableAt(ts) {
+  const i = segAt(ts); if (i < 0) return null;
+  const a = TIDES[i], b = TIDES[i + 1], frac = (ts - a.ts) / (b.ts - a.ts);
+  return a.height + (b.height - a.height) * shapeAt(frac, b.height > a.height, Math.abs(b.height - a.height));
+}
+
+// ─── AIR PRESSURE ─────────────────────────────────────────────────────────────
+// Tide tables assume average air pressure. Each hPa above it holds the sea about 1 cm lower (the "inverted barometer"),
+// so a 1030 hPa high takes about 0.17 m off every height and brings a falling tide's times about 10 minutes earlier.
+// Wind can push the water further either way; that is not guessed at here.
+const P_MEAN = 1013;
+let PRESSURE = null;   // { t0, p: [hPa each hour] } from Open-Meteo: the past 7 days and the next 8
+function surgeAt(ts) {   // metres to add to the tide table at ts, or null when no pressure is known for then
+  if (!PRESSURE) return null;
+  const x = (ts - PRESSURE.t0) / 3600000, i = Math.floor(x);
+  if (i < 0 || i >= PRESSURE.p.length - 1) return null;
+  const a = PRESSURE.p[i], b = PRESSURE.p[i + 1]; if (a == null || b == null) return null;
+  return Math.round((P_MEAN - (a + (b - a) * (x - i)))) / 100;
+}
+// The height to expect: the tide table, plus the air-pressure correction when it is switched on and known
+function tideAt(ts) {
+  const h = tideTableAt(ts); if (h === null) return null;
+  const s = SETTINGS.pressure ? surgeAt(ts) : null;
+  return h + (s || 0);
+}
+
+// ─── THE HEIGHTS IN USE ───────────────────────────────────────────────────────
+function median(v) { if (!v.length) return null; const s = v.slice().sort((a, b) => a - b), k = s.length >> 1; return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2; }
+// The height of the water at a logged moment, worked out the same way as the predictions
+function obsHeight(o) { const h = tideTableAt(o.ts); return h === null ? null : h + (SETTINGS.pressure && o.surge != null ? o.surge : 0); }
+// From what you logged when you have logged it, otherwise from the Tune panel's numbers
+function heights() {
+  const of = k => median(OBS.filter(o => o.kind === k).map(obsHeight).filter(h => h !== null));
+  const fl = of('float'), ag = of('aground'), so = of('stepoff'), rise = fl !== null ? fl : SETTINGS.win;
+  return { rise, fall: ag !== null ? ag : rise, stepOff: so !== null ? so : SETTINGS.stepOff, logged: { float: fl !== null, aground: ag !== null, stepoff: so !== null } };
+}
+
+// ─── WHEN THE WATER PASSES A HEIGHT ───────────────────────────────────────────
+// Solved between each high and low water to within a few seconds. (The old version looked every 10 minutes and
+// reported the first look below the height, so a falling tide's time came out up to 10 minutes late.)
+function crossings(from, to, h) {
+  const out = []; if (h == null) return out;
+  let i = segAt(Math.max(from, TIDES[0].ts)); if (i < 0) return out;
+  for (; i < TIDES.length - 1 && TIDES[i].ts < to; i++) {
+    const a = TIDES[i].ts, b = TIDES[i + 1].ts, fa = tideAt(a) - h, fb = tideAt(b) - h;
+    if ((fa >= 0) === (fb >= 0)) continue;
+    let lo = a, hi = b;
+    while (hi - lo > 5000) { const m = (lo + hi) / 2; if ((tideAt(m) - h >= 0) === (fa >= 0)) lo = m; else hi = m; }
+    const ts = Math.round((lo + hi) / 2);
+    if (ts >= from && ts < to) out.push({ ts, rising: fa < 0 });
   }
-  if (lo < 0) return null;
-  const frac = (tsMs - TIDES[lo].ts) / (TIDES[lo+1].ts - TIDES[lo].ts);
-  const mu = (1 - Math.cos(frac * Math.PI)) / 2;
-  return TIDES[lo].height + (TIDES[lo+1].height - TIDES[lo].height) * mu;
+  return out;
 }
-
-function fmtTs(ts) { return fmtLocal(ts); } // all display times go through local clock
-
-function hwsForDate(ds) {
-  return TIDES.filter(t => {
-    const d = new Date(t.ts);
-    const k = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-    return k === ds && t.type === 'H';
-  });
-}
-
-function sailingWindows(ds) {
-  const [y,mo,dy] = ds.split('-').map(Number);
-  const dayStart = Date.UTC(y, mo-1, dy, 0, 0);
-  const windows = [];
-  let inWin = false, winStart = null;
-  for (let min = 0; min <= 24*60; min += 10) {
-    const ts = dayStart + min * 60000;
-    const h = tideAt(ts);
-    if (h === null) continue;
-    if (h >= THRESHOLD && !inWin) { inWin = true; winStart = ts; }
-    else if (h < THRESHOLD && inWin) { windows.push({ start: winStart, end: ts }); inWin = false; }
+// Each spell afloat that overlaps a day (its real start and end, even across midnight), and when you can step off after it
+function windowsForDay(ds) {
+  const [d0, d1] = dayBounds(ds), H = heights(), pad = 14 * 3600000, wins = [];
+  const ups = crossings(d0 - pad, d1, H.rise).filter(c => c.rising);
+  const downs = crossings(d0 - pad, d1 + pad, H.fall).filter(c => !c.rising);
+  const backup = H.fall !== H.rise ? crossings(d0 - pad, d1 + pad, H.rise).filter(c => !c.rising) : downs;
+  const offs = H.stepOff != null ? crossings(d0 - pad, d1 + 2 * pad, H.stepOff).filter(c => !c.rising) : [];
+  for (const u of ups) {
+    const lw = TIDES.find(t => t.ts > u.ts && t.type === 'L'); if (!lw) continue;   // the tide table ends before this tide does
+    const inTide = x => x.ts > u.ts && x.ts <= lw.ts;
+    const d = downs.find(inTide) || backup.find(inTide); if (!d) continue;
+    if (d.ts <= d0 || u.ts >= d1) continue;
+    const o = offs.find(inTide);
+    wins.push({ start: u.ts, end: d.ts, stepOff: o ? o.ts : null });
   }
-  if (inWin) windows.push({ start: winStart, end: dayStart + 24*60*60000 });
-  return windows;
+  return wins;
 }
+function hwsForDay(ds) { const [d0, d1] = dayBounds(ds); return TIDES.filter(t => t.type === 'H' && t.ts >= d0 && t.ts < d1); }
 
-function winLabel(w) {
+function fmtEdge(ts, ds) {   // a time, with its day when it is not on the card's own day
+  const [d0, d1] = dayBounds(ds);
+  return ts < d0 || ts >= d1 ? `${fmtDay(ts).split(' ')[0]} ${fmtLocal(ts)}` : fmtLocal(ts);
+}
+function winLabel(w, ds) {
   const dur = Math.round((w.end - w.start) / 60000);
   const h = Math.floor(dur/60), m = dur%60;
-  const ds = h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
-  const tz = tzLabel(w.start);
-  return `${fmtLocal(w.start)} – ${fmtLocal(w.end)} ${tz} (${ds})`;
+  const dl = h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+  return `${fmtEdge(w.start, ds)} – ${fmtEdge(w.end, ds)} ${tzLabel(w.start)} (${dl})`;
 }
 
 async function fetchWeather() {
   const base = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`;
   const marine = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}`;
   const [atmoRes, marineRes] = await Promise.all([
-    fetch(base + `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,cloud_cover&wind_speed_unit=kn&forecast_days=8&timezone=UTC`),
+    fetch(base + `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,cloud_cover,pressure_msl&wind_speed_unit=kn&past_days=7&forecast_days=8&timezone=UTC`),
     fetch(marine + `&hourly=wave_height&forecast_days=8&timezone=UTC`)
   ]);
   if (!atmoRes.ok) return null;
@@ -534,6 +684,7 @@ async function fetchWeather() {
       wave:  waveMap[t] ?? null,
     };
   });
+  if (atmo.hourly.pressure_msl && atmo.hourly.time.length) PRESSURE = { t0: Date.parse(atmo.hourly.time[0] + ':00Z'), p: atmo.hourly.pressure_msl };
   return map;
 }
 
@@ -565,6 +716,10 @@ function windowBlocked(w, wx) {
   }
   return { wind: windRed, wave: waveRed };
 }
+function pressureNote(ts) {   // e.g. "1031 hPa: water about 0.18 m lower than the tide table"
+  const s = surgeAt(ts); if (!SETTINGS.pressure || s === null || Math.abs(s) < 0.05) return '';
+  return `${Math.round(P_MEAN - s * 100)} hPa: water about ${Math.abs(s).toFixed(2)} m ${s < 0 ? 'lower' : 'higher'} than the tide table, times adjusted`;
+}
 
 function renderDay(ds, wx) {
   const [y,mo,dy] = ds.split('-').map(Number);
@@ -576,9 +731,20 @@ function renderDay(ds, wx) {
   const noonTs = Date.UTC(y, mo-1, dy, 12, 0);
   const tz = tzLabel(noonTs);
   const tzBadge = `<span class="tz-pill">${tz}</span>`;
+  const head = badge => `<div class="day-header">
+      <div><div class="day-name">${dayName}</div><div class="day-date">${dayFmt} ${tzBadge}</div></div>
+      <span class="sail-badge ${badge[0]}">${badge[1]}</span>
+    </div>`;
 
-  const hws  = hwsForDate(ds);
-  const wins = sailingWindows(ds);
+  const [d0, d1] = dayBounds(ds);
+  if (d1 > DATA_END) {
+    return `<div class="day-card">${head(['no', 'No tide table'])}
+      <div class="tide-section"><span style="color:var(--muted);font-size:.75rem">The PLA tide predictions in this app end on ${fmtDay(DATA_END)} ${new Date(DATA_END).getUTCFullYear()}. Add the next year's tide table to see this day.</span></div></div>`;
+  }
+
+  const H = heights();
+  const hws  = hwsForDay(ds);
+  const wins = windowsForDay(ds);
   const maxHW = hws.reduce((mx,hw) => hw.height > mx ? hw.height : mx, 0);
   const hasTideWindow = wins.length > 0;
 
@@ -599,7 +765,7 @@ function renderDay(ds, wx) {
     bc = 'no'; bt = `✗ No Sailing · ${reasons.join(' & ')}`;
   } else if (anyWindRed || anyWaveRed) {
     bc = 'marginal'; bt = '⚠︎ Check Conditions';
-  } else if (maxHW >= 3.5) {
+  } else if (maxHW >= H.rise + 0.3) {
     bc = 'good'; bt = '✓ Can Sail';
   } else {
     bc = 'marginal'; bt = '~ Marginal Tide';
@@ -610,16 +776,18 @@ function renderDay(ds, wx) {
     return `<span class="hw-tick">HW <span class="hw-h">${hw.height.toFixed(2)}m</span> @ ${t} ${tz}</span>`;
   }).join('') || `<span style="color:var(--muted);font-size:.75rem">No HW data</span>`;
 
+  const pn = wins.length ? pressureNote(wins[0].end) : '';
   let winsHTML = '';
   if (wins.length) {
     winsHTML = `<div class="windows-section">
-      <div class="windows-label">🟢 Above ${THRESHOLD}m</div>
+      <div class="windows-label">🟢 Afloat (above ${H.rise.toFixed(2)}m${H.fall !== H.rise ? ', until it falls below ' + H.fall.toFixed(2) + 'm' : ''})</div>
       ${wins.map((w, i) => {
         const dur = Math.round((w.end-w.start)/60000);
         const blk = winBlocks[i];
         const cls = (blk.wind || blk.wave) ? 'warn' : (dur < 90 ? 'warn' : '');
-        return `<span class="window-pill${cls?' '+cls:''}">${winLabel(w)}</span>`;
+        return `<span class="window-pill${cls?' '+cls:''}">${winLabel(w, ds)}</span>${w.stepOff ? `<span class="step-pill">⬇ Step off ${fmtEdge(w.stepOff, ds)}</span>` : ''}`;
       }).join('')}
+      ${pn ? `<div class="press-note">${pn}</div>` : ''}
     </div>`;
   }
 
@@ -635,7 +803,7 @@ function renderDay(ds, wx) {
           const isRed = wd.wind >= 22 || (wd.wave !== null && wd.wave >= 1.5);
           const waveStr = wd.wave !== null ? `${wavi(wd.wave)} ${wd.wave.toFixed(1)}m` : '–';
           rows += `<tr${isRed?' class="row-warn"':''}>
-            <td class="t">${fmtTs(ts)}</td>
+            <td class="t">${fmtLocal(ts)}</td>
             <td class="d">${h!=null?h.toFixed(1)+'m':'–'}</td>
             <td class="w">${wi(wd.wind)} ${wd.wind.toFixed(0)}kn</td>
             <td class="wd">${dirLabel(wd.dir)}</td>
@@ -647,7 +815,7 @@ function renderDay(ds, wx) {
         }
         return `${i>0?'<hr class="win-divider">':''}
         <div class="hourly-weather"><table class="hourly-table">
-          <thead><tr><th>Time (${tz})</th><th>Depth</th><th>Wind</th><th>Dir</th><th>Gust</th><th>Wave</th><th>Rain</th><th>Cloud</th></tr></thead>
+          <thead><tr><th>Time (${tz})</th><th>Tide</th><th>Wind</th><th>Dir</th><th>Gust</th><th>Wave</th><th>Rain</th><th>Cloud</th></tr></thead>
           <tbody>${rows||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:.5rem">No forecast yet</td></tr>'}</tbody>
         </table></div>`;
       }).join('');
@@ -673,39 +841,103 @@ function renderDay(ds, wx) {
   }
 
   return `<div class="day-card">
-    <div class="day-header">
-      <div><div class="day-name">${dayName}</div><div class="day-date">${dayFmt} ${tzBadge}</div></div>
-      <span class="sail-badge ${bc}">${bt}</span>
-    </div>
+    ${head([bc, bt])}
     <div class="tide-section"><div class="hw-ticks">${hwHTML}</div></div>
     ${winsHTML}
     ${wxHTML}
   </div>`;
 }
 
-async function main() {
-  let wx = null;
-  try { wx = await fetchWeather(); } catch(e) { console.warn('Weather unavailable', e); }
+// ─── THE TUNE PANEL ───────────────────────────────────────────────────────────
+// Log the moment she floats, touches the bottom or you step off, and the app works out the height of the water then.
+// Once something is logged, the middle of what you logged is the height used for it.
+function nearestCrossing(o, H) {   // when the current settings say that logged moment happens, near it
+  const h = o.kind === 'float' ? H.rise : o.kind === 'aground' ? H.fall : H.stepOff; if (h == null) return null;
+  const c = crossings(o.ts - 6 * 3600000, o.ts + 6 * 3600000, h).filter(x => x.rising === (o.kind === 'float'));
+  let best = null; for (const x of c) if (!best || Math.abs(x.ts - o.ts) < Math.abs(best.ts - o.ts)) best = x;
+  return best ? best.ts : null;
+}
+function localInputValue(ts) { const d = new Date(ts); return new Date(ts - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+// '' if a log makes sense, otherwise why not: floating happens on a rising tide, touching the bottom and stepping off on a
+// falling one (with half an hour's grace after low or high water, for a log made a little late)
+function checkObs(kind, ts) {
+  if (!OBS_KINDS[kind] || !isFinite(ts)) return 'Pick what happened and when.';
+  const i = segAt(ts); if (i < 0) return 'There is no tide table for that time.';
+  if (ts > Date.now() + 10 * 60000) return 'That time has not happened yet.';
+  const a = TIDES[i], b = TIDES[i + 1], rising = b.height > a.height, want = kind === 'float';
+  if (rising === want || ts - a.ts <= 30 * 60000) return '';
+  const tw = t => `${t.type === 'H' ? 'high' : 'low'} water ${fmtLocal(t.ts)}`;
+  return `At ${fmtDay(ts)} ${fmtLocal(ts)} the tide was ${rising ? 'rising' : 'falling'} (${tw(a)}, ${tw(b)}). ${OBS_KINDS[kind]} ${want ? 'is logged on a rising tide' : 'is logged on a falling tide'}: check the time.`;
+}
+let tuneMsg = '';
+function addObs(kind, ts) {
+  const bad = checkObs(kind, ts); if (bad) { tuneMsg = bad; renderTune(); return; }
+  OBS.push({ kind, ts, surge: surgeAt(ts) });
+  OBS.sort((a, b) => a.ts - b.ts); if (OBS.length > 60) OBS = OBS.slice(-60);
+  store.set('obs', OBS);
+  tuneMsg = `Logged: ${OBS_KINDS[kind].toLowerCase()} ${fmtDay(ts)} ${fmtLocal(ts)}, when the water was about ${obsHeight({ ts, surge: surgeAt(ts) }).toFixed(2)} m.`;
+  refresh();
+}
+function renderTune() {
+  const H = heights(), q = id => document.getElementById(id);
+  const n = k => OBS.filter(o => o.kind === k).length;
+  q('h-win').value = H.rise.toFixed(2); q('h-win').disabled = H.logged.float;
+  q('h-win-note').textContent = H.logged.float ? `From the ${n('float')} time${n('float') === 1 ? '' : 's'} you logged her floating.` : 'She floats, and you can get in and out of the harbour, above this.';
+  q('h-off').value = H.stepOff != null ? H.stepOff.toFixed(2) : ''; q('h-off').disabled = H.logged.stepoff;
+  q('h-off-note').textContent = H.logged.stepoff ? `From the ${n('stepoff')} time${n('stepoff') === 1 ? '' : 's'} you logged stepping off.` : 'Leave blank until you know it, or log the moment you step off and the app works it out.';
+  q('h-fall-note').textContent = H.logged.aground ? `She touches the bottom on a falling tide at ${H.fall.toFixed(2)} m (from the ${n('aground')} time${n('aground') === 1 ? '' : 's'} you logged it), and that is when the windows end.` : '';
+  q('p-on').checked = SETTINGS.pressure;
+  q('t-msg').textContent = tuneMsg;
+  const rows = OBS.slice().reverse().map((o, i) => {
+    const h = obsHeight(o), p = nearestCrossing(o, H), diff = p === null ? null : Math.round((p - o.ts) / 60000);
+    const pred = diff === null ? '' : diff === 0 ? 'predicted on the minute' : `predicted ${Math.abs(diff)} min ${diff > 0 ? 'later' : 'earlier'}`;
+    return `<tr><td>${fmtDay(o.ts)} ${fmtLocal(o.ts)}</td><td>${OBS_KINDS[o.kind]}</td><td>${h === null ? '–' : h.toFixed(2) + ' m'}</td><td class="mutd">${pred}</td><td><button class="x" data-i="${OBS.length - 1 - i}" aria-label="Remove">✕</button></td></tr>`;
+  }).join('');
+  q('o-list').innerHTML = rows ? `<table class="obs-table"><thead><tr><th>When</th><th>What</th><th>Water</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="mutd">Nothing logged yet.</p>';
+  q('o-list').querySelectorAll('.x').forEach(b => b.onclick = () => { OBS.splice(+b.dataset.i, 1); store.set('obs', OBS); tuneMsg = 'Removed.'; refresh(); });
+  if (!q('o-when').value) q('o-when').value = localInputValue(Date.now());
+}
+function setupTune() {
+  const q = id => document.getElementById(id);
+  const num = (el, key, allowBlank) => { el.onchange = () => {
+    const v = el.value.trim() === '' ? null : Number(el.value);
+    if (v === null && !allowBlank) { tuneMsg = 'Give a height in metres.'; renderTune(); return; }
+    if (v !== null && !okHeight(v)) { tuneMsg = 'That height is outside the tide table (it runs from about 0.3 m to 5.8 m).'; renderTune(); return; }
+    SETTINGS[key] = v; store.set('settings', SETTINGS); tuneMsg = 'Saved on this phone.'; refresh(); }; };
+  num(q('h-win'), 'win', false); num(q('h-off'), 'stepOff', true);
+  q('p-on').onchange = () => { SETTINGS.pressure = q('p-on').checked; store.set('settings', SETTINGS); tuneMsg = ''; refresh(); };
+  document.querySelectorAll('.now-btn').forEach(b => b.onclick = () => addObs(b.dataset.k, Date.now()));
+  q('o-add').onclick = () => { const ts = new Date(q('o-when').value).getTime(); if (!isFinite(ts)) { tuneMsg = 'Pick a date and time.'; renderTune(); return; } addObs(q('o-kind').value, ts); };
+  q('o-clear').onclick = () => { if (!OBS.length || !confirm('Clear everything you have logged?')) return; OBS = []; store.set('obs', OBS); tuneMsg = 'Cleared.'; refresh(); };
+}
 
-  function renderCards(days) {
-    const today = new Date();
-    const cards = [];
-    for (let i = 0; i < days; i++) {
-      const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()+i));
-      const ds = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-      cards.push(renderDay(ds, wx));
-    }
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('cards').innerHTML = cards.join('');
+let WX = null, activeDays = 7;
+function localToday() { const now = Date.now(), d = new Date(now + localOffsetMs(now)); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+function renderCards(days) {
+  const t0 = localToday(), cards = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(t0 + i * 86400000);
+    const ds = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+    cards.push(renderDay(ds, WX));
   }
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('cards').innerHTML = cards.join('');
+}
+function renderHeader() {
+  const H = heights();
+  document.getElementById('hdr-sub').textContent = `Margate Harbour · Afloat above ${H.rise.toFixed(2)} m${H.stepOff != null ? ' · Step off below ' + H.stepOff.toFixed(2) + ' m' : ''} · UK time`;
+}
+function refresh() { renderHeader(); renderCards(activeDays); renderTune(); }
 
-  let activeDays = 7;
-  renderCards(activeDays);
+async function main() {
+  setupTune();
+  try { WX = await fetchWeather(); } catch(e) { console.warn('Weather unavailable', e); }
+  refresh();
 
   const now = Date.now();
   const tzNow = tzLabel(now);
   document.getElementById('updated-time').textContent =
-    `Updated ${new Date(now + localOffsetMs(now)).toISOString().slice(11,16)} ${tzNow}`;
+    `Updated ${new Date(now + localOffsetMs(now)).toISOString().slice(11,16)} ${tzNow}` + (WX ? '' : ' · weather not available');
 
   document.querySelectorAll('.lookahead-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -718,7 +950,7 @@ async function main() {
   });
 }
 
-main();
+if (typeof window !== 'undefined' && !window.CIS_TEST) main();
 </script>
 </body>
 </html>
